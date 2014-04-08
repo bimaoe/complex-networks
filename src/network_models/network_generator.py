@@ -8,7 +8,7 @@ class NetworkGenerator(object):
 	@classmethod
 	def generate(cls, size_of_network, type_of_network, parameter_list):
 		"""Generates a network of the given type and with the given parameters.
-		Attributes:
+		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			type_of_network: An integer that represents the desired model for the network.
 			parameter_list: A list of parameters for the given type.
@@ -21,7 +21,7 @@ class NetworkGenerator(object):
 	def generate_BA(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the Barabasi-Albert model.
 
-		Attributes:
+		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [number_of_outgoing_edges, is_directed, power_of_nonlinear_model].
 				number_of_outgoing_edges: A positive integer indicating the number of outgoing edges for each vertex.
@@ -37,7 +37,7 @@ class NetworkGenerator(object):
 	def generate_ER(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the Erdos-Renyi model.
 
-		Attributes:
+		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [probability_of_connection, is_directed].
 				probability_of_connection: A double indicating the probability of connecting any pair of nodes.
