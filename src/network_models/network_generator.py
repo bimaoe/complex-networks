@@ -48,6 +48,22 @@ class NetworkGenerator(object):
 		"""
 		return igraph.GraphBase.Erdos_Renyi(n = size_of_network, p = parameter_list[0], directed = parameter_list[1])
 
+	@classmethod
+	def generate_WS(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Watts-Strogatz model.
+
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [distance_of_connection, rewiring_probability].
+				distance_of_connection: A positive integer indicating the distance within which two vertices will be connected.
+				rewiring_probability: A double indicating the rewiring probability.
+
+		Returns:
+			An igraph graph based on the Barabasi-Albert model.
+		"""
+		return igraph.GraphBase.Watts_Strogatz(dim = 1, size = size_of_network, nei = parameter_list[0], p = parameter_list[1], loops = False, multiple = False)
+
 if __name__ == '__main__':
 	print NetworkGenerator.generate_BA(100, [3, False])
-	print NetworkGenerator.generate_ER(100, [0.5, False]);
+	print NetworkGenerator.generate_ER(100, [0.5, False])
+	print NetworkGenerator.generate_WS(100, [2, 0.5])
