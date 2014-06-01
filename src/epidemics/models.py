@@ -24,7 +24,7 @@ class Epidemics(object):
 		self.infected_nodes = [first_infected]
 		self.node_status = ['s' for _ in xrange(self.graph.vcount())]
 		self.node_status[first_infected] = 'i'
-		self.evolution = {'s': [], 'i': [], 'r': []} if model == 'SIR' else {'s': [], 'i': []}
+		self.evolution = {'s': [graph.vcount()-1], 'i': [1], 'r': [0]} if model == 'SIR' else {'s': [graph.vcount()-1], 'i': [1]}
 		self.max_iterations = max_iterations
 
 	def run_infection(self):
