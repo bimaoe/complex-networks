@@ -3,6 +3,7 @@
 import igraph
 import numpy
 import matplotlib.pyplot as pyplot
+import math
 
 class NetworkGenerator(object):
 	"""Network generator."""
@@ -68,10 +69,11 @@ class NetworkGenerator(object):
 	@classmethod
 	def generate_SF2ER(cls, size_of_network, parameter_list):
 		"""Generates a graph based on a configuration model.
-		
+		Based on the model B in "From Scale-free to Erdos-Renyi Networks".
+
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
-			parameter_list: A list [alpha].
+			parameter_list: A list [alpha, m0, m].
 				alpha: A double between 0 and 1 indicating the probability of choosing a node without taking the degree into account.
 				m0: An integer indicating the number of nodes in the starting fully connected network.
 				m: An integer indicating the number of outgoing edges for each node except the m0 starting ones.
@@ -102,7 +104,7 @@ class NetworkGenerator(object):
 				# Connect to m nodes with probability proportional to the degree.
 				deg = [pa_deg[node] for node in all_nodes]
 				total = sum(deg)
-				prob = [degree*1.0/total for degree in deg]
+				prob = [degree * 1.0 / total for degree in deg]
 				chosen_nodes = numpy.random.choice(all_nodes, m, False, prob)
 				for node in chosen_nodes:
 					pa_deg[node] += 1
@@ -110,9 +112,91 @@ class NetworkGenerator(object):
 					g.add_edge(i, node)
 		return g
 
+	@classmethod
+	def generate_Waxman(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Waxman model.
+		The Waxman model creates a random graph when the nodes are points in space. The probability that two nodes are connected depends on the distance between the points.
+
+		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ \alpha } }
+		
+		Based on "Routing of Multipoint Connections".
+		
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [alpha, beta].
+				alpha: A double between 0 and 1 representing the density of short edges relative to long ones.
+				beta: A double between 0 and 1 representing the edge density.
+
+		Returns:
+			An igraph graph based on the Waxman model.
+		"""
+		alpha = parameter_list[0]
+		beta = parameter_list[1]
+
+		# Create an undirected graph with size_of_network nodes.
+		g = igraph.Graph(size_of_network)
+
+		# Create random points in a 1x1 square.
+		x = numpy.random.random(size_of_network)
+		y = numpy.random.random(size_of_network)
+
+		# Create the edges.
+		for i in xrange(0, size_of_network):
+			for j in xrange(i+1, size_of_network):
+				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
+				if numpy.random.rand() < beta * math.exp(-d / alpha):
+					g.add_edge(i, j)
+		return g
+
+	@classmethod
+	def generate_SpatialSF(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the geographic Scale Free model.
+		The geographic Scale Free model creates a random graph when the nodes are points in space. The probability that two nodes are connected depends on the distance between the points and the degree of the nodes.
+
+		P(u, v) = (k + 1) \exp{ \frac{ -d(u, v) }{ r_c } }
+		
+		Based on "Crossover from Scale-Free to Spatial Networks".
+		
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [n0, m, rc].
+				n0: An integer indicating the number of initial active nodes.
+				m: An integer indicating the number of outgoing edges for each node except the m0 starting ones.
+				rc: A double between 0 and 1 representing the density of short edges relative to long ones.
+
+		Returns:
+			An igraph graph based on the spatial Scale Free model.
+		"""
+		n0 = parameter_list[0]
+		m = parameter_list[1]
+		rc = parameter_list[2]
+
+		# Create an undirected graph with size_of_network nodes.
+		g = igraph.Graph(size_of_network)
+
+		# Create random points in a 1x1 square.
+		x = numpy.random.random(size_of_network)
+		y = numpy.random.random(size_of_network)
+
+		for i in xrange(n0 + 1, size_of_network):
+			deg = g.degree(range(0, i))
+			total = sum(deg)
+			prob = []
+			for j in xrange(0, i):
+				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
+				prob.append((deg[j] + 1) * math.exp(-d / rc))
+			total = sum(prob)
+			prob = [probability / total for probability in prob]
+			g.add_edges([(i, j) for j in numpy.random.choice(range(0, i), m, False, prob)])
+
+		return g
+
 if __name__ == '__main__':
 	# print NetworkGenerator.generate_BA(100, [3, False])
 	# print NetworkGenerator.generate_ER(100, [0.5, False])
 	# print NetworkGenerator.generate_WS(100, [2, 0.5])
-	pyplot.hist(NetworkGenerator.generate_SF2ER(1000, [0, 5, 5]).degree(), 100)
+	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
+	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
+	g = NetworkGenerator.generate_SpatialSF(500, [5, 5, 0.5])
+	pyplot.hist(g.degree(), 100)
 	pyplot.show()
