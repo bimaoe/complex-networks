@@ -8,17 +8,27 @@ import math
 class NetworkGenerator(object):
 	"""Network generator."""
 
+	
+
 	@classmethod
-	def generate(cls, size_of_network, type_of_network, parameter_list):
+	def generate(cls, type_of_network, size_of_network, parameter_list):
 		"""Generates a network of the given type and with the given parameters.
 		Parameters:
-			size_of_network: An integer indicating the number of nodes in the network.
 			type_of_network: An integer that represents the desired model for the network.
+			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list of parameters for the given type.
 
 		Returns:
 			An igraph graph that is the generated network.
 		"""
+		generator_dict = {
+				"BA": cls.generate_BA,
+				"ER": cls.generate_ER,
+				"WS": cls.generate_WS,
+				"SF2ER": cls.generate_SF2ER,
+				"Waxman": cls.generate_Waxman,
+				"SpatialSF": cls.generate_SpatialSF}
+		return generator_dict[type_of_network](size_of_network, parameter_list)
 
 	@classmethod
 	def generate_BA(cls, size_of_network, parameter_list):
@@ -197,6 +207,6 @@ if __name__ == '__main__':
 	# print NetworkGenerator.generate_WS(100, [2, 0.5])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
-	g = NetworkGenerator.generate_SpatialSF(500, [5, 5, 0.5])
+	g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
 	pyplot.hist(g.degree(), 100)
 	pyplot.show()
