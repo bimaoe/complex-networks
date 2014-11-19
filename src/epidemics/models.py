@@ -2,6 +2,7 @@
 
 import igraph
 import random
+import matplotlib.pyplot as pyplot
 
 class Epidemics(object):
 	"""Epidemic spread in a graph."""
@@ -36,7 +37,7 @@ class Epidemics(object):
 				if self.node_status[neighbour] == 's' and random.random() < self.infection_probability:
 					self.node_status[neighbour] = 'i'
 					newly_infected.append(neighbour)
-		return newly_infected
+		return list(set(newly_infected))
 
 	def run_recovery(self):
 		"""Runs the recovery stage of the epidemic spread."""
@@ -55,11 +56,23 @@ class Epidemics(object):
 			self.evolution[status].append(self.node_status.count(status))
 
 	def run(self):
-		"""Runs the epidemic spread."""
+		"""Runs the epidemic spread.
+		
+		Returns:
+			True if the spread ended because there were no more infected nodes and False if it ended because of the maximum number of iterations.
+		"""
 		for _ in xrange(self.max_iterations):
 			self.run_step()
+			if len(self.infected_nodes) == 0:
+				return True
+		return False
 
 if __name__ == '__main__':
-	epi = Epidemics(igraph.GraphBase.Barabasi(100, 3), 'SIR', [0.3, 0.2], 0, 100)
+	epi = Epidemics(igraph.GraphBase.Erdos_Renyi(100, 0.1), 'SIR', [0.05, 0.1], 0, 300)
 	epi.run()
-	print epi.evolution
+	size = len(epi.evolution['i'])
+	x = range(0, size)
+	pyplot.plot(x, epi.evolution['s'])
+	pyplot.plot(x, epi.evolution['i'])
+	pyplot.plot(x, epi.evolution['r'])
+	pyplot.show()
