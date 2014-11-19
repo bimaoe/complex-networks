@@ -8,7 +8,7 @@ import math
 class NetworkGenerator(object):
 	"""Network generator."""
 
-	
+	GENERATOR_DICT_KEYS = ["BA", "ER", "WS", "SF2ER", "Waxman", "SpatialSF"]
 
 	@classmethod
 	def generate(cls, type_of_network, size_of_network, parameter_list):
