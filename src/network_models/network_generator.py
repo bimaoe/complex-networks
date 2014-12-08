@@ -1,4 +1,5 @@
-"""This module creates networks based on complex networks models with the aid of the iGraph library."""
+"""This module creates networks based on complex networks models with the aid of
+		the iGraph library."""
 
 import igraph
 import numpy
@@ -8,13 +9,16 @@ import math
 class NetworkGenerator(object):
 	"""Network generator."""
 
-	GENERATOR_DICT_KEYS = ["BA", "ER", "WS", "SF2ER", "Waxman", "SpatialSF"]
+	GENERATOR_DICT_KEYS = ["BA", "ER", "WS", "SF2ER", "Waxman", "SpatialSF",
+			"DegreeSequence", "ConfigurationSF"]
+	RANDOM = numpy.random.RandomState()
 
 	@classmethod
 	def generate(cls, type_of_network, size_of_network, parameter_list):
 		"""Generates a network of the given type and with the given parameters.
 		Parameters:
-			type_of_network: An integer that represents the desired model for the network.
+			type_of_network: An integer that represents the desired model for the
+					network.
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list of parameters for the given type.
 
@@ -27,7 +31,9 @@ class NetworkGenerator(object):
 				"WS": cls.generate_WS,
 				"SF2ER": cls.generate_SF2ER,
 				"Waxman": cls.generate_Waxman,
-				"SpatialSF": cls.generate_SpatialSF}
+				"SpatialSF": cls.generate_SpatialSF,
+				"DegreeSequence": cls.generate_DegreeSequence,
+				"ConfigurationSF": cls.generate_ConfigurationSF}
 		return generator_dict[type_of_network](size_of_network, parameter_list)
 
 	@classmethod
@@ -36,15 +42,20 @@ class NetworkGenerator(object):
 
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
-			parameter_list: A list [number_of_outgoing_edges, is_directed, power_of_nonlinear_model].
-				number_of_outgoing_edges: A positive integer indicating the number of outgoing edges for each vertex.
+			parameter_list: A list [number_of_outgoing_edges, is_directed,
+					power_of_nonlinear_model].
+				number_of_outgoing_edges: A positive integer indicating the number of
+						outgoing edges for each vertex.
 				is_directed: A boolean indicating whether the graph is directed.
-				power_of_non_linear_model: A double indicating the power of the model(optional).
+				power_of_non_linear_model: A double indicating the power of the
+						model(optional).
 
 		Returns:
 			An igraph graph based on the Barabasi-Albert model.
 		"""
-		return igraph.GraphBase.Barabasi(n = size_of_network, m = parameter_list[0], directed = parameter_list[1], power = parameter_list[2] if len(parameter_list) > 2 else 1)
+		return igraph.GraphBase.Barabasi(n = size_of_network, m = parameter_list[0],
+				directed = parameter_list[1], power = (parameter_list[2]
+				if len(parameter_list) > 2 else 1))
 	
 	@classmethod
 	def generate_ER(cls, size_of_network, parameter_list):
@@ -53,13 +64,15 @@ class NetworkGenerator(object):
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [probability_of_connection, is_directed].
-				probability_of_connection: A double indicating the probability of connecting any pair of nodes.
+				probability_of_connection: A double indicating the probability of
+						connecting any pair of nodes.
 				is_directed: A boolean indicating whether the graph is directed.
 
 		Returns:
 			An igraph graph based on the Erdos-Renyi model.
 		"""
-		return igraph.GraphBase.Erdos_Renyi(n = size_of_network, p = parameter_list[0], directed = parameter_list[1])
+		return igraph.GraphBase.Erdos_Renyi(n = size_of_network,
+				p = parameter_list[0], directed = parameter_list[1])
 
 	@classmethod
 	def generate_WS(cls, size_of_network, parameter_list):
@@ -68,13 +81,16 @@ class NetworkGenerator(object):
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [distance_of_connection, rewiring_probability].
-				distance_of_connection: A positive integer indicating the distance within which two vertices will be connected.
+				distance_of_connection: A positive integer indicating the distance
+						within which two vertices will be connected.
 				rewiring_probability: A double indicating the rewiring probability.
 
 		Returns:
 			An igraph graph based on the Barabasi-Albert model.
 		"""
-		return igraph.GraphBase.Watts_Strogatz(dim = 1, size = size_of_network, nei = parameter_list[0], p = parameter_list[1], loops = False, multiple = False)
+		return igraph.GraphBase.Watts_Strogatz(dim = 1, size = size_of_network,
+				nei = parameter_list[0], p = parameter_list[1], loops = False,
+				multiple = False)
 
 	@classmethod
 	def generate_SF2ER(cls, size_of_network, parameter_list):
@@ -84,9 +100,12 @@ class NetworkGenerator(object):
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [alpha, m0, m].
-				alpha: A double between 0 and 1 indicating the probability of choosing a node without taking the degree into account.
-				m0: An integer indicating the number of nodes in the starting fully connected network.
-				m: An integer indicating the number of outgoing edges for each node except the m0 starting ones.
+				alpha: A double between 0 and 1 indicating the probability of choosing a
+						node without taking the degree into account.
+				m0: An integer indicating the number of nodes in the starting fully
+						connected network.
+				m: An integer indicating the number of outgoing edges for each node
+						except the m0 starting ones.
 
 		Returns:
 			An igraph graph based on a configuration model.
@@ -94,7 +113,9 @@ class NetworkGenerator(object):
 		alpha = parameter_list[0]
 		m0 = parameter_list[1]
 		m = parameter_list[2]
-		pa_deg = [0] * size_of_network # Number of edges generated by preferential attachment for each node.
+
+		# Number of edges generated by preferential attachment for each node
+		pa_deg = [0] * size_of_network
 
 		# Create an undirected graph with size_of_network nodes.
 		g = igraph.Graph(size_of_network)
@@ -107,15 +128,15 @@ class NetworkGenerator(object):
 		# Add the remaining nodes.
 		for i in xrange(m0, size_of_network):
 			all_nodes = [node for node in xrange(0, size_of_network) if node != i]
-			if numpy.random.random() < alpha:
+			if cls.RANDOM.random() < alpha:
 				# Connect to m nodes with uniform probability distribution.
-				g.add_edges([(i, j) for j in numpy.random.choice(all_nodes, m, False)])
+				g.add_edges([(i, j) for j in cls.RANDOM.choice(all_nodes, m, False)])
 			else:
 				# Connect to m nodes with probability proportional to the degree.
 				deg = [pa_deg[node] for node in all_nodes]
 				total = sum(deg)
 				prob = [degree * 1.0 / total for degree in deg]
-				chosen_nodes = numpy.random.choice(all_nodes, m, False, prob)
+				chosen_nodes = cls.RANDOM.choice(all_nodes, m, False, prob)
 				for node in chosen_nodes:
 					pa_deg[node] += 1
 					pa_deg[i] += 1
@@ -125,7 +146,9 @@ class NetworkGenerator(object):
 	@classmethod
 	def generate_Waxman(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the Waxman model.
-		The Waxman model creates a random graph when the nodes are points in space. The probability that two nodes are connected depends on the distance between the points.
+		The Waxman model creates a random graph when the nodes are points in space.
+		The probability that two nodes are connected depends on the distance between
+				the points.
 
 		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ \alpha } }
 		
@@ -134,7 +157,8 @@ class NetworkGenerator(object):
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [alpha, beta].
-				alpha: A double between 0 and 1 representing the density of short edges relative to long ones.
+				alpha: A double between 0 and 1 representing the density of short edges
+						relative to long ones.
 				beta: A double between 0 and 1 representing the edge density.
 
 		Returns:
@@ -147,21 +171,23 @@ class NetworkGenerator(object):
 		g = igraph.Graph(size_of_network)
 
 		# Create random points in a 1x1 square.
-		x = numpy.random.random(size_of_network)
-		y = numpy.random.random(size_of_network)
+		x = cls.RANDOM.random(size_of_network)
+		y = cls.RANDOM.random(size_of_network)
 
 		# Create the edges.
 		for i in xrange(0, size_of_network):
 			for j in xrange(i+1, size_of_network):
 				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
-				if numpy.random.rand() < beta * math.exp(-d / alpha):
+				if cls.RANDOM.rand() < beta * math.exp(-d / alpha):
 					g.add_edge(i, j)
 		return g
 
 	@classmethod
 	def generate_SpatialSF(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the geographic Scale Free model.
-		The geographic Scale Free model creates a random graph when the nodes are points in space. The probability that two nodes are connected depends on the distance between the points and the degree of the nodes.
+		The geographic Scale Free model creates a random graph when the nodes are
+				points in space. The probability that two nodes are connected depends on
+				the distance between the points and the degree of the nodes.
 
 		P(u, v) = (k + 1) \exp{ \frac{ -d(u, v) }{ r_c } }
 		
@@ -171,8 +197,10 @@ class NetworkGenerator(object):
 			size_of_network: An integer indicating the number of nodes in the network.
 			parameter_list: A list [n0, m, rc].
 				n0: An integer indicating the number of initial active nodes.
-				m: An integer indicating the number of outgoing edges for each node except the m0 starting ones.
-				rc: A double between 0 and 1 representing the density of short edges relative to long ones.
+				m: An integer indicating the number of outgoing edges for each node
+						except the m0 starting ones.
+				rc: A double between 0 and 1 representing the density of short edges
+						relative to long ones.
 
 		Returns:
 			An igraph graph based on the spatial Scale Free model.
@@ -185,8 +213,8 @@ class NetworkGenerator(object):
 		g = igraph.Graph(size_of_network)
 
 		# Create random points in a 1x1 square.
-		x = numpy.random.random(size_of_network)
-		y = numpy.random.random(size_of_network)
+		x = cls.RANDOM.random(size_of_network)
+		y = cls.RANDOM.random(size_of_network)
 
 		for i in xrange(n0 + 1, size_of_network):
 			deg = g.degree(range(0, i))
@@ -197,9 +225,49 @@ class NetworkGenerator(object):
 				prob.append((deg[j] + 1) * math.exp(-d / rc))
 			total = sum(prob)
 			prob = [probability / total for probability in prob]
-			g.add_edges([(i, j) for j in numpy.random.choice(range(0, i), m, False, prob)])
+			g.add_edges([(i, j) for j in \
+					cls.RANDOM.choice(range(0, i), m, False, prob)])
 
 		return g
+
+	@classmethod
+	def generate_DegreeSequence(cls, size_of_network, parameter_list):
+		"""Generates a simple connected graph with the given degree sequence.
+
+			Parameters:
+				size_of_network: An integer indicating the number of nodes in the network.
+				parameter_list: A list [degree_list].
+					degree_list: A list of integers indicating the degree of each node in
+							the graph. The sum of the integers must be even.
+
+			Returns:
+				An igraph simple connected graph with the given degree sequence.
+		"""
+		return igraph.GraphBase.Degree_Sequence(parameter_list[0], method="vl")
+
+	@classmethod
+	def generate_ConfigurationSF(cls, size_of_network, parameter_list):
+		"""Generates a simple connected SF network with a given degree distribution.
+
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [gamma].
+				gamma: A double indicating the gamma of the degree distribution.
+						P(k) ~ k^(-gamma)
+
+		Returns:
+			An igraph simple connected SF network with a degree distribution defined by
+					the parameter.
+		"""
+		gamma = parameter_list[0]
+		probabilities = [i**(-gamma) for i in range(2, size_of_network)]
+		total = sum(probabilities)
+		probabilities = [probabilities[i]/total for i in range(len(probabilities))]
+		degree_sequence = list(cls.RANDOM.choice(range(2, size_of_network),
+				size_of_network, True, probabilities))
+		if sum(degree_sequence) % 2 == 1:
+			degree_sequence[0] += 1
+		return cls.generate_DegreeSequence(size_of_network, [degree_sequence])
 
 if __name__ == '__main__':
 	# print NetworkGenerator.generate_BA(100, [3, False])
@@ -207,6 +275,7 @@ if __name__ == '__main__':
 	# print NetworkGenerator.generate_WS(100, [2, 0.5])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
-	g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
+	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
+	g = NetworkGenerator.generate("ConfigurationSF", 500, [2.3])
 	pyplot.hist(g.degree(), 100)
 	pyplot.show()
