@@ -6,7 +6,7 @@ import matplotlib.pyplot as pyplot
 
 class Epidemics(object):
 	"""Epidemic spread in a graph."""
-	def __init__(self, graph, model, model_parameters, first_infected,
+	def __init__(self, graph, model, model_parameters, infected_nodes,
 			max_iterations):
 		"""Initializes the epidemic spread model.
 
@@ -19,8 +19,8 @@ class Epidemics(object):
 						probability that a node will be infected by one infected neighbour.
 				recovery_probability: A double between 0 and 1 indicating the recovery
 						probability of a node(None for SI model).
-			first_infected: An integer indicating the index of the node that will
-					start the epidemy.
+			infected_list: A list of integers indicating the index of the nodes that
+					will start the epidemy.
 			max_iterations: An integer indicating the maximum number of iterations.
 		"""
 		self.graph = graph;
@@ -29,11 +29,14 @@ class Epidemics(object):
 		self.recovery_probability = None if model == 'SI' else model_parameters[1]
 		self.recovery_status = None if model == 'SI' else ('s' if model == 'SIS'
 				else 'r')
-		self.infected_nodes = [first_infected]
+		self.infected_nodes = infected_nodes
 		self.node_status = ['s' for _ in xrange(self.graph.vcount())]
-		self.node_status[first_infected] = 'i'
-		self.evolution = ({'s': [graph.vcount()-1], 'i': [1], 'r': [0]}
-				if model == 'SIR' else {'s': [graph.vcount()-1], 'i': [1]})
+		for infected_node in infected_nodes:
+			self.node_status[infected_node] = 'i'
+		infected_count = len(infected_nodes)
+		self.evolution = ({'s': [graph.vcount() - infected_count], 
+				'i': [infected_count], 'r': [0]} if model == 'SIR'
+				else {'s': [graph.vcount() - infected_count], 'i': [infected_count]})
 		self.max_iterations = max_iterations
 		self.random = numpy.random.RandomState()
 
@@ -80,7 +83,7 @@ class Epidemics(object):
 
 if __name__ == '__main__':
 	epi = Epidemics(igraph.GraphBase.Erdos_Renyi(100, 0.1), 'SIR', [0.3, 1],
-			0, 300)
+			[0], 300)
 	epi.run()
 	size = len(epi.evolution['i'])
 	x = range(0, size)
