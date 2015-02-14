@@ -254,16 +254,18 @@ class NetworkGenerator(object):
 			parameter_list: A list [gamma].
 				gamma: A double indicating the gamma of the degree distribution.
 						P(k) ~ k^(-gamma)
+				m: An integer indicating the minimum degree.
 
 		Returns:
 			An igraph simple connected SF network with a degree distribution defined by
 					the parameter.
 		"""
 		gamma = parameter_list[0]
-		probabilities = [i**(-gamma) for i in range(2, size_of_network)]
+		m = parameter_list[1]
+		probabilities = [i**(-gamma) for i in range(m, size_of_network)]
 		total = sum(probabilities)
 		probabilities = [probabilities[i]/total for i in range(len(probabilities))]
-		degree_sequence = list(cls.RANDOM.choice(range(2, size_of_network),
+		degree_sequence = list(cls.RANDOM.choice(range(m, size_of_network),
 				size_of_network, True, probabilities))
 		if sum(degree_sequence) % 2 == 1:
 			degree_sequence[0] += 1
