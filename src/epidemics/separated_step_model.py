@@ -5,7 +5,9 @@ import numpy
 import matplotlib.pyplot as pyplot
 
 class Epidemics(object):
-	"""Epidemic spread in a graph."""
+	"""Epidemic spread in a graph.
+	The recovery step occurs before the infection step.
+	An infected node tries to recover and if it doesn't, it tries to infect its neighbours."""
 	def __init__(self, graph, model, model_parameters, infected_nodes,
 			max_iterations):
 		"""Initializes the epidemic spread model.

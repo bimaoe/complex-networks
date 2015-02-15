@@ -31,7 +31,8 @@ class Epidemics(object):
 		self.recovery_probability = None if model == 'SI' else model_parameters[1]
 		self.recovery_status = None if model == 'SI' else ('s' if model == 'SIS'
 				else 'r')
-		self.infected_nodes = infected_nodes
+		self.infected_nodes = (infected_nodes if isinstance(infected_nodes, list)
+				else [infected_nodes])
 		self.node_status = ['s' for _ in xrange(self.graph.vcount())]
 		for infected_node in infected_nodes:
 			self.node_status[infected_node] = 'i'
@@ -48,25 +49,36 @@ class Epidemics(object):
 		for infected_node in self.infected_nodes:
 			neighbours = self.graph.neighbors(infected_node)
 			for neighbour in neighbours:
-				if (self.node_status[neighbour] == 's' and
-						self.random.uniform() < self.infection_probability):
-					self.node_status[neighbour] = 'i'
-					newly_infected.append(neighbour)
-		return list(set(newly_infected))
+				if self.random.uniform() < self.infection_probability:
+					if self.node_status[neighbour] == 's':
+						self.node_status[neighbour] = 'ni' # ni stands for newly infected
+						self.infected_nodes.append(neighbour)
+					elif (self.recovery_status == 's' # SIS model
+							and self.node_status[neighbour] == 'i'):
+						self.node_status[neighbour] = 'ri' # ri stands for reinfected
 
 	def run_recovery(self):
 		"""Runs the recovery stage of the epidemic spread."""
 		for infected_node in self.infected_nodes:
-			if self.random.uniform() < self.recovery_probability:
+			# if node was not reinfected or newly infected
+			if (self.node_status[infected_node] == 'i'
+					and self.random.uniform() < self.recovery_probability):
 				self.node_status[infected_node] = self.recovery_status
 				self.infected_nodes.remove(infected_node)
 
+	def regularize_infected(self):
+		"""Turns 'ni' and 'ri' into 'i'."""
+		for node in xrange(0, len(self.node_status)):
+			if (self.node_status[node] == 'ni'
+					or self.node_status[node] == 'ri'):
+				self.node_status[node] = 'i'
+
 	def run_step(self):
 		"""Runs a step of the epidemic spread."""
-		newly_infected = self.run_infection()
+		self.run_infection()
 		if self.recovery_probability:
 			self.run_recovery()
-		self.infected_nodes += newly_infected
+		self.regularize_infected()
 		for status in self.evolution:
 			self.evolution[status].append(self.node_status.count(status))
 
@@ -77,17 +89,19 @@ class Epidemics(object):
 			True if the spread ended because there were no more infected nodes.
 			False if it ended because of the maximum number of iterations.
 		"""
-		for _ in xrange(self.max_iterations):
+		for _ in xrange(0, self.max_iterations):
 			self.run_step()
 			if len(self.infected_nodes) == 0:
 				return True
 		return False
 
 if __name__ == '__main__':
-	epi = Epidemics(igraph.GraphBase.Erdos_Renyi(100, 0.1), 'SIR', [0.3, 1],
-			[0], 300)
+	size_of_network = 1000
+	infected_list = list(numpy.random.choice(range(0, size_of_network), size_of_network/100))
+	epi = Epidemics(igraph.GraphBase.Erdos_Renyi(size_of_network, 0.01), 'SIR', [0.1, 1],
+			infected_list, 50)
 	epi.run()
-	size = len(epi.evolution['i'])
+	size = len(epi.evolution['s'])
 	x = range(0, size)
 	pyplot.plot(x, epi.evolution['s'])
 	pyplot.plot(x, epi.evolution['i'])
