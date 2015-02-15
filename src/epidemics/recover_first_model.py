@@ -34,7 +34,7 @@ class Epidemics(object):
 		self.infected_nodes = (infected_nodes if isinstance(infected_nodes, list)
 				else [infected_nodes])
 		self.node_status = ['s' for _ in xrange(self.graph.vcount())]
-		for infected_node in infected_nodes:
+		for infected_node in self.infected_nodes:
 			self.node_status[infected_node] = 'i'
 		infected_count = len(infected_nodes)
 		self.evolution = ({'s': [graph.vcount() - infected_count], 
