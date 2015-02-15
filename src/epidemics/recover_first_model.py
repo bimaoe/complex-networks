@@ -36,7 +36,7 @@ class Epidemics(object):
 		self.node_status = ['s' for _ in xrange(self.graph.vcount())]
 		for infected_node in self.infected_nodes:
 			self.node_status[infected_node] = 'i'
-		infected_count = len(infected_nodes)
+		infected_count = len(self.infected_nodes)
 		self.evolution = ({'s': [graph.vcount() - infected_count], 
 				'i': [infected_count], 'r': [0]} if model == 'SIR'
 				else {'s': [graph.vcount() - infected_count], 'i': [infected_count]})
