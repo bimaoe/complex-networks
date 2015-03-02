@@ -63,19 +63,20 @@ Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
     int firstInfected, int maxIterations) {
   vector<int> initiallyInfected;
   initiallyInfected.push_back(firstInfected);
-  runSIR(graph, delta, nu, initiallyInfected, maxIterations);
+  return runSIR(graph, delta, nu, initiallyInfected, maxIterations);
 }
 
 #include <stdio.h>
 
 int main(void) {
   Graph graph;
-  graph.readFromFile();
+  graph.readFromFile("ConfigurationSF_1000_023.edgelist");
   Epidemics::Evolution * ans = Epidemics::runSIR(graph, 0.8, 0.3, 0, 100);
   for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < statusCount[i].size(); j++) {
-      printf ("%lld, ", statusCount[i][j]);
+    for (int j = 0; j < ans->statusCount[i].size(); j++) {
+      printf ("%lld, ", ans->statusCount[i][j]);
     }
     printf ("\n");
   }
+  delete ans;
 }
