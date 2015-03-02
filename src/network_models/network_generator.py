@@ -278,6 +278,7 @@ if __name__ == '__main__':
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
 	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
-	g = NetworkGenerator.generate("ConfigurationSF", 500, [2.3])
+	g = NetworkGenerator.generate("ConfigurationSF", 1000, [2.3, 2])
+	g.write_edgelist("ConfigurationSF_1000_023.edgelist")
 	pyplot.hist(g.degree(), 100)
 	pyplot.show()
