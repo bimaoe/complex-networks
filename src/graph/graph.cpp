@@ -54,6 +54,8 @@ set<int> & Graph::getNeighbours(int vId) {
 void Graph::readFromFile(string filename) {
   ifstream file;
   file.open(filename);
+
+  int vId1, vId2;
   while (file >> vId1 >> vId2) {
     addVertices(max(vId1, vId2) - getVertexCount() + 1);
     addEdge(vId1, vId2);
@@ -63,13 +65,13 @@ void Graph::readFromFile(string filename) {
   }
 }
 
-#include <iostream>
+// #include <iostream>
 
-int main(void) {
-  Graph g;
-  g.addVertices(3);
-  g.addEdge(0, 1);
-  g.addEdge(0, 2);
-  cout << g.areConnected(0, 1) << " " << g.areConnected(1, 2) << endl;
-  cout << g.edges.size() << endl;
-}
+// int main(void) {
+//   Graph g;
+//   g.addVertices(3);
+//   g.addEdge(0, 1);
+//   g.addEdge(0, 2);
+//   cout << g.areConnected(0, 1) << " " << g.areConnected(1, 2) << endl;
+//   cout << g.edges.size() << endl;
+// }
