@@ -16,6 +16,7 @@ public:
   class Evolution {
   public:
     vector<long long> statusCount[3]; // Should be indexed with the Status enum.
+    void add(long long sCount, long long iCount);
     void add(long long sCount, long long iCount, long long rCount);
   };
 
@@ -39,9 +40,63 @@ public:
       graph: The graph where the epidemics will be spread.
       delta: The infection probability, must be in [0, 1].
       nu: The recovery probability, must be in [0, 1].
-      first: The initially infected vertex's ID.
+      firstInfected: The initially infected vertex's ID.
       maxIterations: Maximum number of iterations to run.
   **/
   static Epidemics::Evolution * runSIR(Graph & graph, double delta, double nu, int firstInfected,
+      int maxIterations);
+
+  /** Run the SIS model in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      iniciallyInfected: The initially infected vertices' IDs.
+      maxIterations: Maximum number of iterations to run.
+      withReinfection: Whether the SIS will be with or without reinfection.
+    Notes:
+      Reinfection means that a vertex can recover and be reinfected in the same time step.
+  **/
+  static Epidemics::Evolution * runSIS(Graph & graph, double delta, double nu,
+      vector<int> & initiallyInfected, int maxIterations, bool withReinfection);
+
+  /** Run the SIS model in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      firstInfected: The initially infected vertex's ID.
+      maxIterations: Maximum number of iterations to run.
+      withReinfection: Whether the SIS will be with or without reinfection.
+    Notes:
+      Reinfection means that a vertex can recover and be reinfected in the same time step.
+  **/
+  static Epidemics::Evolution * runSIS(Graph & graph, double delta, double nu, int firstInfected,
+      int maxIterations, bool withReinfection);
+
+  /** Run the SIS model without reinfection in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      iniciallyInfected: The initially infected vertices' IDs.
+      maxIterations: Maximum number of iterations to run.
+    Notes:
+      Reinfection means that a vertex can recover and be reinfected in the same time step.
+  **/
+  static Epidemics::Evolution * runSIS(Graph & graph, double delta, double nu,
+      vector<int> & initiallyInfected, int maxIterations);
+
+  /** Run the SIS model without reinfection in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      firstInfected: The initially infected vertex's ID.
+      maxIterations: Maximum number of iterations to run.
+    Notes:
+      Reinfection means that a vertex can recover and be reinfected in the same time step.
+  **/
+  static Epidemics::Evolution * runSIS(Graph & graph, double delta, double nu, int firstInfected,
       int maxIterations);
 };
