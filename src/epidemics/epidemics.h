@@ -15,9 +15,11 @@ public:
 
   class Evolution {
   public:
+    int usedStatus; // Should be 2 for SI and SIS and 3 for SIR.
     vector<long long> statusCount[3]; // Should be indexed with the Status enum.
     void add(long long sCount, long long iCount);
     void add(long long sCount, long long iCount, long long rCount);
+    void operator += (Evolution *e);
   };
 
   /** Initialize the infected list and the status vector. **/
@@ -98,5 +100,27 @@ public:
       Reinfection means that a vertex can recover and be reinfected in the same time step.
   **/
   static Epidemics::Evolution * runSIS(Graph & graph, double delta, double nu, int firstInfected,
+      int maxIterations);
+
+  /** Run the SI model in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      iniciallyInfected: The initially infected vertices' IDs.
+      maxIterations: Maximum number of iterations to run.
+  **/
+  static Epidemics::Evolution * runSI(Graph & graph, double delta,
+      vector<int> & initiallyInfected, int maxIterations);
+
+  /** Run the SI model in a graph.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      firstInfected: The initially infected vertex's ID.
+      maxIterations: Maximum number of iterations to run.
+  **/
+  static Epidemics::Evolution * runSI(Graph & graph, double delta, int firstInfected,
       int maxIterations);
 };

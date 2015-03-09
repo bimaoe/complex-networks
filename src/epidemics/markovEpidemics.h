@@ -13,6 +13,7 @@ public:
 
   class Evolution {
   public:
+    int usedStatus; // Should be 2 for SI and SIS and 3 for SIR.
     vector<double> statusCount[3]; // Should be indexed with the Status enum.
     void add(double sCount, double iCount);
     void add(double sCount, double iCount, double rCount);
@@ -129,4 +130,37 @@ public:
   **/
   static MarkovEpidemics::Evolution * runSIS(Graph & graph, double delta, double nu,
       int firstInfected, int maxIterations);
+
+  /** Calculate the expected value of each status per iteration for SI model.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      initialStatusProbability: The probability of being S/I for each node.
+      maxIterations: Maximum number of iterations to run.
+  **/
+  static MarkovEpidemics::Evolution * runSI(Graph & graph, double delta,
+    vector<double> initialStatusProbability[3], int maxIterations);
+
+  /** Calculate the expected value of each status per iteration for SI model.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      i0: The initial probability of being infected.
+      maxIterations: Maximum number of iterations to run.
+  **/
+  static MarkovEpidemics::Evolution * runSI(Graph & graph, double delta, double i0,
+      int maxIterations);
+
+  /** Calculate the expected value of each status per iteration for SIS model.
+    Parameters:
+      graph: The graph where the epidemics will be spread.
+      delta: The infection probability, must be in [0, 1].
+      nu: The recovery probability, must be in [0, 1].
+      firstInfected: The initially infected vertex's ID.
+      maxIterations: Maximum number of iterations to run.
+  **/
+  static MarkovEpidemics::Evolution * runSI(Graph & graph, double delta, int firstInfected,
+      int maxIterations);
 };
