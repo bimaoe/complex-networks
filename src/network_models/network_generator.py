@@ -56,6 +56,26 @@ class NetworkGenerator(object):
 		return igraph.GraphBase.Barabasi(n = size_of_network, m = parameter_list[0],
 				directed = parameter_list[1], power = (parameter_list[2]
 				if len(parameter_list) > 2 else 1))
+
+	@classmethod
+	def generate_BA_with_average_degree(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Barabasi-Albert model.
+
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [average_degree, is_directed,
+					power_of_nonlinear_model].
+				average_degree: A number indicating the average degree of the network.
+				is_directed: A boolean indicating whether the graph is directed.
+				power_of_non_linear_model: A double indicating the power of the
+						model(optional).
+
+		Returns:
+			An igraph graph based on the Barabasi-Albert model.
+		"""
+		return igraph.GraphBase.Barabasi(n = size_of_network, m = parameter_list[0],
+				directed = parameter_list[1], power = (parameter_list[2]
+				if len(parameter_list) > 2 else 1))
 	
 	@classmethod
 	def generate_ER(cls, size_of_network, parameter_list):
@@ -75,6 +95,23 @@ class NetworkGenerator(object):
 				p = parameter_list[0], directed = parameter_list[1])
 
 	@classmethod
+	def generate_ER_with_average_degree(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Erdos-Renyi model.
+
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [average_degree, is_directed].
+				average_degree: A number indicating the average degree of the network.
+				is_directed: A boolean indicating whether the graph is directed.
+
+		Returns:
+			An igraph graph based on the Erdos-Renyi model.
+		"""
+		return igraph.GraphBase.Erdos_Renyi(n = size_of_network,
+				m = parameter_list[0] * size_of_network,
+				directed = parameter_list[1])
+
+	@classmethod
 	def generate_WS(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the Watts-Strogatz model.
 
@@ -83,6 +120,23 @@ class NetworkGenerator(object):
 			parameter_list: A list [distance_of_connection, rewiring_probability].
 				distance_of_connection: A positive integer indicating the distance
 						within which two vertices will be connected.
+				rewiring_probability: A double indicating the rewiring probability.
+
+		Returns:
+			An igraph graph based on the Barabasi-Albert model.
+		"""
+		return igraph.GraphBase.Watts_Strogatz(dim = 1, size = size_of_network,
+				nei = parameter_list[0], p = parameter_list[1], loops = False,
+				multiple = False)
+
+	@classmethod
+	def generate_WS_with_average_degree(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Watts-Strogatz model.
+
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [average_degree, rewiring_probability].
+				average_degree: A number indicating the average degree of the network.
 				rewiring_probability: A double indicating the rewiring probability.
 
 		Returns:
@@ -150,7 +204,7 @@ class NetworkGenerator(object):
 		The probability that two nodes are connected depends on the distance between
 				the points.
 
-		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ \alpha } }
+		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ sqrt(2) \alpha } }
 		
 		Based on "Routing of Multipoint Connections".
 		
@@ -171,15 +225,17 @@ class NetworkGenerator(object):
 		g = igraph.Graph(size_of_network)
 
 		# Create random points in a 1x1 square.
-		x = cls.RANDOM.random(size_of_network)
-		y = cls.RANDOM.random(size_of_network)
+		x = cls.RANDOM.uniform(size=size_of_network)
+		y = cls.RANDOM.uniform(size=size_of_network)
 
 		# Create the edges.
 		for i in xrange(0, size_of_network):
+			edges = []
 			for j in xrange(i+1, size_of_network):
 				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
-				if cls.RANDOM.rand() < beta * math.exp(-d / alpha):
-					g.add_edge(i, j)
+				if cls.RANDOM.uniform() < beta * math.exp(-d / alpha):
+					edges.append((i, j))
+			g.add_edges(edges)
 		return g
 
 	@classmethod
@@ -198,7 +254,7 @@ class NetworkGenerator(object):
 			parameter_list: A list [n0, m, rc].
 				n0: An integer indicating the number of initial active nodes.
 				m: An integer indicating the number of outgoing edges for each node
-						except the m0 starting ones.
+						except the n0 starting ones.
 				rc: A double between 0 and 1 representing the density of short edges
 						relative to long ones.
 
@@ -213,8 +269,8 @@ class NetworkGenerator(object):
 		g = igraph.Graph(size_of_network)
 
 		# Create random points in a 1x1 square.
-		x = cls.RANDOM.random(size_of_network)
-		y = cls.RANDOM.random(size_of_network)
+		x = cls.RANDOM.uniform(size=size_of_network)
+		y = cls.RANDOM.uniform(size=size_of_network)
 
 		for i in xrange(n0 + 1, size_of_network):
 			deg = g.degree(range(0, i))
@@ -272,13 +328,13 @@ class NetworkGenerator(object):
 		return cls.generate_DegreeSequence(size_of_network, [degree_sequence])
 
 if __name__ == '__main__':
-	# print NetworkGenerator.generate_BA(100, [3, False])
-	# print NetworkGenerator.generate_ER(100, [0.5, False])
-	# print NetworkGenerator.generate_WS(100, [2, 0.5])
+	print NetworkGenerator.generate_BA_with_average_degree(100, [3, False])
+	print NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
+	print NetworkGenerator.generate_WS_with_average_degree(100, [3, 0.5])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
 	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
-	g = NetworkGenerator.generate("ConfigurationSF", 1000, [2.3, 2])
-	g.write_edgelist("ConfigurationSF_1000_023.edgelist")
-	pyplot.hist(g.degree(), 100)
-	pyplot.show()
+	# g = NetworkGenerator.generate("ConfigurationSF", 1000, [2.3, 2])
+	# g.write_edgelist("ConfigurationSF_1000_023.edgelist")
+	# pyplot.hist(g.degree(), 100)
+	# pyplot.show()
