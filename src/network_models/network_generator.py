@@ -73,9 +73,7 @@ class NetworkGenerator(object):
 		Returns:
 			An igraph graph based on the Barabasi-Albert model.
 		"""
-		return igraph.GraphBase.Barabasi(n = size_of_network, m = parameter_list[0],
-				directed = parameter_list[1], power = (parameter_list[2]
-				if len(parameter_list) > 2 else 1))
+		return cls.generate_BA(size_of_network, parameter_list)
 	
 	@classmethod
 	def generate_ER(cls, size_of_network, parameter_list):
@@ -239,6 +237,46 @@ class NetworkGenerator(object):
 		return g
 
 	@classmethod
+	def generate_Waxman_with_average_degree(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the Waxman model.
+		The Waxman model creates a random graph when the nodes are points in space.
+		The probability that two nodes are connected depends on the distance between
+				the points.
+
+		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ sqrt(2) \alpha } }
+		
+		Based on "Routing of Multipoint Connections".
+		
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [average_degree, alpha].
+				average_degree: A number indicating the average degree of the network.
+				alpha: A double between 0 and 1 representing the density of short edges
+						relative to long ones.
+
+		Returns:
+			An igraph graph based on the Waxman model.
+		"""
+		alpha = parameter_list[1]
+
+		# Create an undirected graph with size_of_network nodes.
+		g = igraph.Graph(size_of_network)
+
+		# Create random points in a 1x1 square.
+		x = cls.RANDOM.uniform(size=size_of_network)
+		y = cls.RANDOM.uniform(size=size_of_network)
+
+		# Create the edges.
+		edges = []
+		for i in xrange(0, size_of_network):
+			for j in xrange(i+1, size_of_network):
+				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
+				edges.append((cls.RANDOM.uniform() * math.exp(-d / alpha), (i, j)))
+		edges = sorted(edges)
+		g.add_edges([e[1] for e in edges[-parameter_list[0]*size_of_network:]])
+		return g
+
+	@classmethod
 	def generate_SpatialSF(cls, size_of_network, parameter_list):
 		"""Generates a graph based on the geographic Scale Free model.
 		The geographic Scale Free model creates a random graph when the nodes are
@@ -287,6 +325,29 @@ class NetworkGenerator(object):
 		return g
 
 	@classmethod
+	def generate_SpatialSF_with_average_degree(cls, size_of_network, parameter_list):
+		"""Generates a graph based on the geographic Scale Free model.
+		The geographic Scale Free model creates a random graph when the nodes are
+				points in space. The probability that two nodes are connected depends on
+				the distance between the points and the degree of the nodes.
+
+		P(u, v) = (k + 1) \exp{ \frac{ -d(u, v) }{ r_c } }
+		
+		Based on "Crossover from Scale-Free to Spatial Networks".
+		
+		Parameters:
+			size_of_network: An integer indicating the number of nodes in the network.
+			parameter_list: A list [average_degree, rc].
+				average_degree: A number indicating the average degree of the network.
+				rc: A double between 0 and 1 representing the density of short edges
+						relative to long ones.
+
+		Returns:
+			An igraph graph based on the spatial Scale Free model.
+		"""
+		return cls.generate_SpatialSF(size_of_network, [parameter_list[0], parameter_list[0], parameter_list[1]])
+
+	@classmethod
 	def generate_DegreeSequence(cls, size_of_network, parameter_list):
 		"""Generates a simple connected graph with the given degree sequence.
 
@@ -328,13 +389,15 @@ class NetworkGenerator(object):
 		return cls.generate_DegreeSequence(size_of_network, [degree_sequence])
 
 if __name__ == '__main__':
-	print NetworkGenerator.generate_BA_with_average_degree(100, [3, False])
-	print NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
-	print NetworkGenerator.generate_WS_with_average_degree(100, [3, 0.5])
+	# print NetworkGenerator.generate_BA_with_average_degree(100, [3, False, 1.5])
+	# print NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
+	# print NetworkGenerator.generate_WS_with_average_degree(100, [3, 0.5])
+	# print NetworkGenerator.generate_SpatialSF_with_average_degree(100, [3, 0.3])
+	g = NetworkGenerator.generate_Waxman_with_average_degree(100, [7, 0.4])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
-	# g = NetworkGenerator.generate_Waxman(500, [0.4, 0.05])
+	# g = NetworkGenerator.generate_Waxman(100, [0.4, 0.05])
 	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
 	# g = NetworkGenerator.generate("ConfigurationSF", 1000, [2.3, 2])
 	# g.write_edgelist("ConfigurationSF_1000_023.edgelist")
-	# pyplot.hist(g.degree(), 100)
-	# pyplot.show()
+	pyplot.hist(g.degree(), 100)
+	pyplot.show()
