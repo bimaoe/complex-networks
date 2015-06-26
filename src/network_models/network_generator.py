@@ -246,6 +246,9 @@ class NetworkGenerator(object):
 		P(u, v) = \beta \exp{ \frac{ -d(u, v) }{ sqrt(2) \alpha } }
 		
 		Based on "Routing of Multipoint Connections".
+
+		Uses binary search to determine the beta parameter to produce the desired
+		average degree.
 		
 		Parameters:
 			size_of_network: An integer indicating the number of nodes in the network.
@@ -258,22 +261,21 @@ class NetworkGenerator(object):
 			An igraph graph based on the Waxman model.
 		"""
 		alpha = parameter_list[1]
+		eps = 0.01
 
-		# Create an undirected graph with size_of_network nodes.
-		g = igraph.Graph(size_of_network)
-
-		# Create random points in a 1x1 square.
-		x = cls.RANDOM.uniform(size=size_of_network)
-		y = cls.RANDOM.uniform(size=size_of_network)
-
-		# Create the edges.
-		edges = []
-		for i in xrange(0, size_of_network):
-			for j in xrange(i+1, size_of_network):
-				d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
-				edges.append((cls.RANDOM.uniform() * math.exp(-d / alpha), (i, j)))
-		edges = sorted(edges)
-		g.add_edges([e[1] for e in edges[-parameter_list[0]*size_of_network:]])
+		beg = 0.0
+		end = 100.0
+		mid = 0.0
+		while beg < end:
+			mid = (beg + end)/2.0
+			g = cls.generate_Waxman(size_of_network, [alpha, mid])
+			average_degree = numpy.mean(g.degree())
+			if abs(average_degree - parameter_list[0]) < eps:
+				break
+			if average_degree < parameter_list[0]:
+				beg = mid
+			else:
+				end = mid
 		return g
 
 	@classmethod
@@ -390,10 +392,10 @@ class NetworkGenerator(object):
 
 if __name__ == '__main__':
 	# print NetworkGenerator.generate_BA_with_average_degree(100, [3, False, 1.5])
-	g = NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
+	# g = NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
 	# print NetworkGenerator.generate_WS_with_average_degree(100, [3, 0.5])
 	# print NetworkGenerator.generate_SpatialSF_with_average_degree(100, [3, 0.3])
-	# g = NetworkGenerator.generate_Waxman_with_average_degree(100, [7, 0.4])
+	g = NetworkGenerator.generate_Waxman_with_average_degree(100, [3, 0.6])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(100, [0.4, 0.05])
 	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
