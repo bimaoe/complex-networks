@@ -105,9 +105,9 @@ class NetworkGenerator(object):
 		Returns:
 			An igraph graph based on the Erdos-Renyi model.
 		"""
-		return igraph.GraphBase.Erdos_Renyi(n = size_of_network,
-				m = parameter_list[0] * size_of_network,
-				directed = parameter_list[1])
+		coef = 1.0 if parameter_list[1] else 2.0
+		p = coef * parameter_list[0] / (size_of_network - 1)
+		return cls.generate_ER(size_of_network, [p, parameter_list[1]])
 
 	@classmethod
 	def generate_WS(cls, size_of_network, parameter_list):
@@ -390,14 +390,15 @@ class NetworkGenerator(object):
 
 if __name__ == '__main__':
 	# print NetworkGenerator.generate_BA_with_average_degree(100, [3, False, 1.5])
-	# print NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
+	g = NetworkGenerator.generate_ER_with_average_degree(100, [3, False])
 	# print NetworkGenerator.generate_WS_with_average_degree(100, [3, 0.5])
 	# print NetworkGenerator.generate_SpatialSF_with_average_degree(100, [3, 0.3])
-	g = NetworkGenerator.generate_Waxman_with_average_degree(100, [7, 0.4])
+	# g = NetworkGenerator.generate_Waxman_with_average_degree(100, [7, 0.4])
 	# g = NetworkGenerator.generate_SF2ER(1000, [0.5, 5, 5]).degree(), 100)
 	# g = NetworkGenerator.generate_Waxman(100, [0.4, 0.05])
 	# g = NetworkGenerator.generate("SpatialSF", 500, [5, 5, 0.5])
 	# g = NetworkGenerator.generate("ConfigurationSF", 1000, [2.3, 2])
 	# g.write_edgelist("ConfigurationSF_1000_023.edgelist")
+	print g
 	pyplot.hist(g.degree(), 100)
 	pyplot.show()
