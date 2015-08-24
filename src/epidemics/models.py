@@ -84,12 +84,16 @@ class Epidemics(object):
 		return False
 
 if __name__ == '__main__':
-	epi = Epidemics(igraph.GraphBase.Erdos_Renyi(100, 0.1), 'SIR', [0.3, 1],
-			[0], 300)
-	epi.run()
-	size = len(epi.evolution['i'])
-	x = range(0, size)
-	pyplot.plot(x, epi.evolution['s'])
-	pyplot.plot(x, epi.evolution['i'])
-	pyplot.plot(x, epi.evolution['r'])
+	graph = igraph.GraphBase.Erdos_Renyi(1000, 0.01)
+	infected_fractions = []
+	ITERATIONS = 70
+	for i in xrange(101):
+		infected_fraction = 0
+		for it in xrange(ITERATIONS):
+			epi = Epidemics(graph, 'SIR', [0.01*i, 1], [0], 70)
+			epi.run()
+			infected_fraction += epi.evolution['i'][-1]+epi.evolution['r'][-1]
+		infected_fractions.append(infected_fraction * 1.0 / ITERATIONS)
+	x = range(0, len(infected_fractions))
+	pyplot.plot(x, infected_fractions)
 	pyplot.show()

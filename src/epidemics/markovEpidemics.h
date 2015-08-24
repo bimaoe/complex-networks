@@ -17,6 +17,8 @@ public:
     vector<double> statusCount[3]; // Should be indexed with the Status enum.
     void add(double sCount, double iCount);
     void add(double sCount, double iCount, double rCount);
+    double getInfectedCount(void); /* Get the expected number of infected vertices.
+                                      Includes recovered vertices for SIR. */
   };
 
   /** Initialize the status vector.

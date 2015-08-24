@@ -7,6 +7,8 @@ class Epidemics {
 /** This class implements the SI, SIS and SIR epidemic processes.
 **/
 public:
+  Stat stat;
+
   enum Status {
     SUSCEPTIBLE = 0,
     INFECTED = 1,
@@ -19,8 +21,12 @@ public:
     vector<long long> statusCount[3]; // Should be indexed with the Status enum.
     void add(long long sCount, long long iCount);
     void add(long long sCount, long long iCount, long long rCount);
+    long long getInfectedCount(void); /* Get the number of infected vertices.
+                                        Includes recovered vertices for SIR. */
     void operator += (Evolution *e);
   };
+
+  static void initialize(void);
 
   /** Initialize the infected list and the status vector. **/
   static void initializeInfected(vector<int> & initiallyInfected, list<int> & infectedVertices,

@@ -13,6 +13,14 @@ void Epidemics::Evolution::add(long long sCount, long long iCount, long long rCo
   statusCount[RECOVERED].push_back(rCount);
 }
 
+long long Epidemics::Evolution::getInfectedCount(void) {
+  long long infectedCount = statusCount[INFECTED].back();
+  if (usedStatus == 3) {
+    infectedCount += statusCount[RECOVERED].back();
+  }
+  return infectedCount;
+}
+
 void Epidemics::Evolution::operator += (Evolution *e) {
   usedStatus = e->usedStatus;
   for (int i = 0; i < usedStatus; i++) {
@@ -29,6 +37,10 @@ void Epidemics::Evolution::operator += (Evolution *e) {
       statusCount[i][j] += e->statusCount[i].back();
     }
   }
+}
+
+void Epidemics::initialize() {
+  Stat::initialize();
 }
 
 void Epidemics::initializeInfected(vector<int> & initiallyInfected,
@@ -213,6 +225,8 @@ Epidemics::Evolution * Epidemics::runSI(Graph & graph, double delta, int firstIn
   return runSI(graph, delta, initiallyInfected, maxIterations);
 }
 
+/*
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -221,6 +235,7 @@ int main(void) {
   Graph graph;
   srand(time(NULL));
   graph.readFromFile("ConfigurationSF_1000_023.edgelist");
+  Epidemics::initialize();
   Epidemics::Evolution ans;
   for (int it = 0; it < 30; it++) {
     Epidemics::Evolution * curr = Epidemics::runSIS(graph, 0.7, 0.3, 0, 30);
@@ -234,4 +249,4 @@ int main(void) {
     }
     printf ("]\n");
   }
-}
+} */

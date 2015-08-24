@@ -13,6 +13,14 @@ void MarkovEpidemics::Evolution::add(double sCount, double iCount, double rCount
   statusCount[RECOVERED].push_back(rCount);
 }
 
+double MarkovEpidemics::Evolution::getInfectedCount(void) {
+  double infectedCount = statusCount[INFECTED].back();
+  if (usedStatus == 3) {
+    infectedCount += statusCount[RECOVERED].back();
+  }
+  return infectedCount;
+}
+
 void MarkovEpidemics::initializeStatus(vector<double> initialStatusProbability[3], int vertexCount,
     double i0) {
   for (int i = 0; i < vertexCount; i++) {
@@ -264,6 +272,7 @@ MarkovEpidemics::Evolution * MarkovEpidemics::runSI(Graph & graph, double delta,
   return runSI(graph, delta, initialStatusProbability, maxIterations);
 }
 
+/*
 #include <stdio.h>
 
 int main(void) {
@@ -279,3 +288,4 @@ int main(void) {
   }
   delete ans;
 }
+*/
