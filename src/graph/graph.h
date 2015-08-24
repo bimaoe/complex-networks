@@ -1,3 +1,6 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+
 #include <fstream>
 #include <vector>
 #include <set>
@@ -50,3 +53,5 @@ public:
   **/
   void readFromFile(string filename);
 };
+
+#endif
