@@ -5,6 +5,7 @@ import igraph
 import numpy
 import matplotlib.pyplot as pyplot
 import math
+import sys
 
 class NetworkGenerator(object):
   """Network generator."""
@@ -83,7 +84,7 @@ class NetworkGenerator(object):
         if parameter_list[0] - int(parameter_list[0]/2)*2 < int((parameter_list[0]+1)/2) - parameter_list[0]
         else int((parameter_list[0]+1)/2))
     return cls.generate_BA(size_of_network, 
-      [int(number_of_outgoing_edges), parameter_list[1], parameter_list[2]
+        [int(number_of_outgoing_edges), parameter_list[1], parameter_list[2]
         if len(parameter_list) > 2 else 1])
   
   @classmethod
@@ -92,16 +93,38 @@ class NetworkGenerator(object):
 
     Parameters:
       size_of_network: An integer indicating the number of nodes in the network.
-      parameter_list: A list [probability_of_connection, is_directed].
+      parameter_list: A list [probability_of_connection, is_directed, force_connected].
         probability_of_connection: A double indicating the probability of
             connecting any pair of nodes.
         is_directed: A boolean indicating whether the graph is directed.
+        force_connected:  A boolean indicating if the graph must be connected(default=False).
 
     Returns:
       An igraph graph based on the Erdos-Renyi model.
     """
-    return igraph.GraphBase.Erdos_Renyi(n = size_of_network,
-        p = parameter_list[0], directed = parameter_list[1])
+    p = parameter_list[0]
+    force_connected = parameter_list[2] if len(parameter_list) > 2 else False
+
+    # Create an undirected graph with size_of_network nodes.
+    g = igraph.Graph(size_of_network)
+    edges = []
+    has_neighbor = [False for _ in xrange(size_of_network)]
+
+    for i in xrange(size_of_network):
+      for j in xrange(i+1, size_of_network):
+        if cls.RANDOM.uniform() < p:
+              has_neighbor[i] = True
+              has_neighbor[j] = True
+              edges.append((i, j))
+
+      # Force the graph to be connected.
+      if force_connected and not has_neighbor[i]:
+        edges.append((i, cls.RANDOM.choice([_i for _i in xrange(size_of_network) if _i != i])))
+
+    g.add_edges(edges)
+    return g
+    #return igraph.GraphBase.Erdos_Renyi(n = size_of_network,
+    #    p = parameter_list[0], directed = parameter_list[1])
 
   @classmethod
   def generate_ER_with_average_degree(cls, size_of_network, parameter_list):
@@ -112,13 +135,15 @@ class NetworkGenerator(object):
       parameter_list: A list [average_degree, is_directed].
         average_degree: A number indicating the average degree of the network.
         is_directed: A boolean indicating whether the graph is directed.
+        force_connected:  A boolean indicating if the graph must be connected(default=False).
 
     Returns:
       An igraph graph based on the Erdos-Renyi model.
     """
     coef = 0.5 if parameter_list[1] else 1.0
     p = coef * parameter_list[0] / (size_of_network - 1)
-    return cls.generate_ER(size_of_network, [p, parameter_list[1]])
+    return cls.generate_ER(size_of_network, [p, parameter_list[1], 
+        parameter_list[2] if len(parameter_list) > 2 else False])
 
   @classmethod
   def generate_WS(cls, size_of_network, parameter_list):
@@ -211,7 +236,7 @@ class NetworkGenerator(object):
     return g
 
   @classmethod
-  def generate_Waxman(cls, size_of_network, parameter_list):
+  def generate_Waxman(cls, size_of_network, parameter_list, point_list=None):
     """Generates a graph based on the Waxman model.
     The Waxman model creates a random graph when the nodes are points in space.
     The probability that two nodes are connected depends on the distance between
@@ -223,16 +248,19 @@ class NetworkGenerator(object):
     
     Parameters:
       size_of_network: An integer indicating the number of nodes in the network.
-      parameter_list: A list [alpha, beta].
+      parameter_list: A list [alpha, beta, force_connected].
         alpha: A double between 0 and 1 representing the density of short edges
             relative to long ones.
         beta: A double representing the edge density.
+        force_connected: A boolean indicating if the graph must be connected(default=False).
+      point_list: A list where the points will be inserted (optional).
 
     Returns:
       An igraph graph based on the Waxman model.
     """
     alpha = parameter_list[0]
     beta = parameter_list[1]
+    force_connected=parameter_list[2] if len(parameter_list) > 2 else False
 
     # Create an undirected graph with size_of_network nodes.
     g = igraph.Graph(size_of_network)
@@ -242,13 +270,41 @@ class NetworkGenerator(object):
     y = cls.RANDOM.uniform(size=size_of_network)
 
     # Create the edges.
-    for i in xrange(0, size_of_network):
-      edges = []
+    sq2 = math.sqrt(2)
+    edges = []
+    has_neighbor = [False for _ in xrange(size_of_network)]
+    for i in xrange(size_of_network):
+      if point_list:
+        point_list.append((x[i], y[i]))
+      # Debug.
+      if not (i%500):
+        print >> sys.stderr, i
+
       for j in xrange(i+1, size_of_network):
         d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
-        if cls.RANDOM.uniform() < beta * math.exp(-d / alpha):
+        p = beta * math.exp(-d / (sq2 * alpha))
+        if p > 1:
+          raise Exception('P is larger than 1.')
+        if cls.RANDOM.uniform() < p:
+          has_neighbor[i] = True
+          has_neighbor[j] = True
           edges.append((i, j))
-      g.add_edges(edges)
+
+      # Force the graph to be connected.
+      if force_connected and not has_neighbor[i]:
+        indices = []
+        ps = []
+        for j in xrange(0, size_of_network):
+          if i == j:
+            continue
+          d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
+          p = beta * math.exp(-d / (sq2 * alpha))
+          ps.append(p)
+          indices.append(j)
+        tot = sum(ps)
+        ps = [ps[_i]*1.0/tot for _i in xrange(0, size_of_network-1)]
+        edges.append((i, cls.RANDOM.choice(indices, p=ps)))
+    g.add_edges(edges)
     return g
 
   @classmethod
@@ -273,24 +329,36 @@ class NetworkGenerator(object):
         average_degree: A number indicating the average degree of the network.
         alpha: A double between 0 and 1 representing the density of short edges
             relative to long ones.
+        force_connected: A boolean indicating if the graph must be connected(default=False).
 
     Returns:
       An igraph graph based on the Waxman model.
     """
     alpha = parameter_list[1]
+    force_connected = parameter_list[2] if len(parameter_list) > 2 else False
     eps = 0.05
 
-    beg = 0.0
-    end = 1.0
-    mid = 0.0
+    g = cls.generate_Waxman(size_of_network, [alpha, 0.3, force_connected])
+    average_degree_03 = g.ecount() * 2.0 / g.vcount()
+    g = cls.generate_Waxman(size_of_network, [alpha, 0.8, force_connected])
+    average_degree_08 = g.ecount() * 2.0 / g.vcount()
+
+    mid = parameter_list[0] * 0.5 / (average_degree_08 - average_degree_03)
+
+    beg = max(mid-0.1, 0.0)
+    end = min(mid+0.1, 1.0)
     while beg < end:
       mid = (beg + end)/2.0
-      g = cls.generate_Waxman(size_of_network, [alpha, mid])
+      g = cls.generate_Waxman(size_of_network, [alpha, mid, force_connected])
       average_degree = g.ecount() * 2.0 / g.vcount()
-      print mid, average_degree
-      if abs(average_degree - parameter_list[0]) < eps:
+      print >> sys.stderr, mid, average_degree
+      if abs(average_degree - parameter_list[0]) / parameter_list[0] < eps:
+        cnt = 0
         while not g.is_connected():
-          g = cls.generate_Waxman(size_of_network, [alpha, mid])
+          print >> sys.stderr, 'ainda no', cnt
+          cnt += 1
+          g = cls.generate_Waxman(size_of_network, [alpha, mid, force_connected])
+        print cnt
         break
       if average_degree < parameter_list[0]:
         beg = mid
@@ -321,8 +389,8 @@ class NetworkGenerator(object):
     Returns:
       An igraph graph based on the spatial Scale Free model.
     """
-    n0 = parameter_list[0]
-    m = parameter_list[1]
+    n0 = int(parameter_list[0])
+    m = int(parameter_list[1])
     rc = parameter_list[2]
 
     # Create an undirected graph with size_of_network nodes.
@@ -332,17 +400,23 @@ class NetworkGenerator(object):
     x = cls.RANDOM.uniform(size=size_of_network)
     y = cls.RANDOM.uniform(size=size_of_network)
 
-    for i in xrange(n0 + 1, size_of_network):
+    edges = []
+
+    for i in xrange(n0):
+      for j in xrange(i+1, n0):
+        edges.append((i, j))
+
+    for i in xrange(n0, size_of_network):
       deg = g.degree(range(0, i))
-      total = sum(deg)
       prob = []
       for j in xrange(0, i):
         d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
         prob.append((deg[j] + 1) * math.exp(-d / rc))
       total = sum(prob)
       prob = [probability / total for probability in prob]
-      g.add_edges([(i, j) for j in \
-          cls.RANDOM.choice(range(0, i), m, False, prob)])
+      edges += [(i, j) for j in \
+          cls.RANDOM.choice(range(0, i), m, False, prob)]
+    g.add_edges(edges)
 
     return g
 
