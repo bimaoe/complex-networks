@@ -1,5 +1,9 @@
 #include "epidemics.h"
 
+int Epidemics::Evolution::size(void) {
+  return statusCount[SUSCEPTIBLE].size();
+}
+
 void Epidemics::Evolution::add(long long sCount, long long iCount) {
   usedStatus = 2;
   statusCount[SUSCEPTIBLE].push_back(sCount);
@@ -13,10 +17,18 @@ void Epidemics::Evolution::add(long long sCount, long long iCount, long long rCo
   statusCount[RECOVERED].push_back(rCount);
 }
 
-long long Epidemics::Evolution::getInfectedCount(void) {
-  long long infectedCount = statusCount[INFECTED].back();
-  if (usedStatus == 3) {
-    infectedCount += statusCount[RECOVERED].back();
+long long Epidemics::Evolution::getInfectedCount(int iteration = -1) {
+  long long infectedCount = 0;
+  if (iteration == -1) {
+    infectedCount = statusCount[INFECTED].back();
+    if (usedStatus == 3) {
+      infectedCount += statusCount[RECOVERED].back();
+    }
+  } else {
+    infectedCount = statusCount[INFECTED][iteration];
+    if (usedStatus == 3) {
+      infectedCount += statusCount[RECOVERED][iteration];
+    }
   }
   return infectedCount;
 }
@@ -233,7 +245,6 @@ Epidemics::Evolution * Epidemics::runSI(Graph & graph, double delta, int firstIn
 
 int main(void) {
   Graph graph;
-  srand(time(NULL));
   graph.readFromFile("ConfigurationSF_1000_023.edgelist");
   Epidemics::initialize();
   Epidemics::Evolution ans;

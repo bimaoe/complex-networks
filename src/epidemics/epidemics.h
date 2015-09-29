@@ -19,10 +19,13 @@ public:
   public:
     int usedStatus; // Should be 2 for SI and SIS and 3 for SIR.
     vector<long long> statusCount[3]; // Should be indexed with the Status enum.
+    int size(void);
     void add(long long sCount, long long iCount);
     void add(long long sCount, long long iCount, long long rCount);
-    long long getInfectedCount(void); /* Get the number of infected vertices.
-                                        Includes recovered vertices for SIR. */
+    /** Get the number of infected vertices. Includes recovered vertices for
+        SIR.
+    **/
+    long long getInfectedCount(int iteration);
     void operator += (Evolution *e);
   };
 
