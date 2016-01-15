@@ -2,9 +2,11 @@
 #define GRAPH_H
 
 #include <fstream>
+#include <iostream>
 #include <vector>
 #include <set>
 #include <string>
+#include <queue>
 
 
 using namespace std;
@@ -42,6 +44,9 @@ public:
 
   void addEdges(vector<pair<int, int> > & vIds);
 
+  /** Removes all the vertices and edges of the graph. **/
+  void clear(void);
+
   /** Check whether vertices with IDs $vId1$ and $vId2$ are connected. If the graph is directed,
       check if there is an edge from $vId1$ to $vId2$.**/
   bool areConnected(int vId1, int vId2);
@@ -52,6 +57,9 @@ public:
     In each line there should be 2 integers indicating the ID's of two vertices to be connected.
   **/
   void readFromFile(string filename);
+
+  /** Calculate the single source shortest path with the BFS algorithm. **/
+  void SSSP(int source, vector<int> & distance);
 };
 
 #endif

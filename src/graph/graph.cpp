@@ -43,6 +43,11 @@ void Graph::addEdges(vector<pair<int, int> > & vIds) {
   }
 }
 
+void Graph::clear(void) {
+  adjacencyList.clear();
+  edges.clear();
+}
+
 bool Graph::areConnected(int vId1, int vId2) {
   return adjacencyList[vId1].count(vId2) > 0;
 }
@@ -54,6 +59,10 @@ set<int> & Graph::getNeighbours(int vId) {
 void Graph::readFromFile(string filename) {
   ifstream file;
   file.open(filename);
+  if (!file.is_open()) {
+    std::cerr << "Error: Could not open file " << filename << std::endl;
+    return;
+  }
 
   int vId1, vId2;
   while (file >> vId1 >> vId2) {
@@ -61,6 +70,27 @@ void Graph::readFromFile(string filename) {
     addEdge(vId1, vId2);
     if (isUndirected) {
       addEdge(vId2, vId1);
+    }
+  }
+}
+
+void Graph::SSSP(int source, vector<int> & distance) {
+  distance.resize(getVertexCount(), -1);
+  queue<int> q;
+
+  // Initialize distance.
+  distance[source] = 0;
+  q.push(source);
+
+  // Run BFS.
+  while(!q.empty()) {
+    int curr = q.front(); q.pop();
+    for (auto it = getNeighbours(curr).begin();
+        it != getNeighbours(curr).end(); it++) {
+      if (distance[*it] == -1) {
+        distance[*it] = distance[curr]+1;
+        q.push(*it);
+      }
     }
   }
 }
