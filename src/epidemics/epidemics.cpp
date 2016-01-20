@@ -67,10 +67,11 @@ void Epidemics::initializeInfected(vector<int> & initiallyInfected,
 Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
     vector<int> & initiallyInfected, int maxIterations) {
   list<int> infectedVertices;
-  vector<Status> status(graph.getVertexCount(), SUSCEPTIBLE);
   Evolution * evolution = new Evolution();
-  
-  initializeInfected(initiallyInfected, infectedVertices, status);
+  vector<vector<Status> > & status = evolution->status;
+  status.push_back(vector<Status>(graph.getVertexCount(), SUSCEPTIBLE));
+
+  initializeInfected(initiallyInfected, infectedVertices, status[0]);
 
   long long iCount = (long long) initiallyInfected.size();
   long long sCount = graph.getVertexCount() - iCount;
@@ -79,6 +80,10 @@ Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
   evolution->add(sCount, iCount, rCount);
 
   for (int t = 0; infectedVertices.size() > 0 &&  t < maxIterations; t++) {
+    // Copy the current status vector into the next one to keep the infected
+    // and recovered status.
+    status.push_back(vector<Status>());
+    status[t+1] = status[t];
     // Iterate over infected vertices.
     for (auto it = infectedVertices.begin(); it != infectedVertices.end();) {
       int curr = *it;
@@ -86,8 +91,8 @@ Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
       // Infection stage.
       for (auto it2 = neighbours.begin(); it2 != neighbours.end(); it2++) {
         int neighbour = *it2;
-        if (status[neighbour] == SUSCEPTIBLE && Stat::uniform() < delta) {
-          status[neighbour] = INFECTED;
+        if (status[t+1][neighbour] == SUSCEPTIBLE && Stat::uniform() < delta) {
+          status[t+1][neighbour] = INFECTED;
           infectedVertices.push_front(neighbour);
           sCount--;
           iCount++;
@@ -95,7 +100,7 @@ Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
       }
       // Recovery stage.
       if (Stat::uniform() < nu) {
-        status[curr] = RECOVERED;
+        status[t+1][curr] = RECOVERED;
         auto it2 = it;
         it++;
         infectedVertices.erase(it2);
@@ -117,6 +122,7 @@ Epidemics::Evolution * Epidemics::runSIR(Graph & graph, double delta, double nu,
   return runSIR(graph, delta, nu, initiallyInfected, maxIterations);
 }
 
+// TODO: Update status of Evolution as in SIR.
 Epidemics::Evolution * Epidemics::runSIS(Graph & graph, double delta, double nu,
     vector<int> & initiallyInfected, int maxIterations, bool withReinfection) {
   list<int> infectedVertices;
@@ -196,6 +202,7 @@ Epidemics::Evolution * Epidemics::runSIS(Graph & graph, double delta, double nu,
   return runSIS(graph, delta, nu, firstInfected, maxIterations, false);
 }
 
+// TODO: Update status of Evolution as in SIR.
 Epidemics::Evolution * Epidemics::runSI(Graph & graph, double delta,
     vector<int> & initiallyInfected, int maxIterations) {
   list<int> infectedVertices;

@@ -18,6 +18,7 @@ public:
   class Evolution {
   public:
     int usedStatus; // Should be 2 for SI and SIS and 3 for SIR.
+    vector<vector<Status> > status; // Status vector for every time step.
     vector<long long> statusCount[3]; // Should be indexed with the Status enum.
     int size(void);
     void add(long long sCount, long long iCount);
