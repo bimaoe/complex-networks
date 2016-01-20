@@ -104,6 +104,14 @@ class Measures(object):
     return ans
 
   @classmethod
+  def measure_largest_eigenvalue(cls, graph):
+    return graph.eigenvector_centrality(directed=graph.is_directed(), return_eigenvalue=True)[1]
+
+  @classmethod
+  def measure_inverse_largest_eigenvalue(cls, graph):
+    return 1.0/graph.eigenvector_centrality(directed=graph.is_directed(), return_eigenvalue=True)[1]
+
+  @classmethod
   def get_methods(cls, method_names):
     return [(method_name, getattr(Measures, method_name)) 
         for method_name in method_names 
