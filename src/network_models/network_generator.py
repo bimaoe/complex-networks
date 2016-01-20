@@ -114,12 +114,13 @@ class NetworkGenerator(object):
       for j in xrange(i+1, size_of_network):
         if cls.RANDOM.uniform() < p:
               has_neighbor[i] = True
-              has_neighbor[j] = True
               edges.append((i, j))
 
-      # Force the graph to be connected.
-      if force_connected and not has_neighbor[i]:
-        edges.append((i, cls.RANDOM.choice([_i for _i in xrange(size_of_network) if _i != i])))
+    if force_connected:
+      for i in xrange(size_of_network-1):  
+        # Force the graph to be connected.
+        if not has_neighbor[i]:
+          edges.append((i, cls.RANDOM.choice([_i for _i in xrange(i+1, size_of_network)])))
 
     g.add_edges(edges)
     return g
@@ -260,7 +261,7 @@ class NetworkGenerator(object):
     """
     alpha = parameter_list[0]
     beta = parameter_list[1]
-    force_connected=parameter_list[2] if len(parameter_list) > 2 else False
+    force_connected = parameter_list[2] if len(parameter_list) > 2 else False
 
     # Create an undirected graph with size_of_network nodes.
     g = igraph.Graph(size_of_network)
@@ -269,41 +270,33 @@ class NetworkGenerator(object):
     x = cls.RANDOM.uniform(size=size_of_network)
     y = cls.RANDOM.uniform(size=size_of_network)
 
+    if point_list:
+      point_list += [(x[_i], y[_i]) for _i in xrange(size_of_network)]
     # Create the edges.
     sq2 = math.sqrt(2)
     edges = []
-    has_neighbor = [False for _ in xrange(size_of_network)]
-    for i in xrange(size_of_network):
-      if point_list:
-        point_list.append((x[i], y[i]))
-      # Debug.
-      if not (i%500):
-        print >> sys.stderr, i
-
+    for i in xrange(size_of_network-1):
+      has_neighbor = False
       for j in xrange(i+1, size_of_network):
         d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
         p = beta * math.exp(-d / (sq2 * alpha))
         if p > 1:
           raise Exception('P is larger than 1.')
         if cls.RANDOM.uniform() < p:
-          has_neighbor[i] = True
-          has_neighbor[j] = True
+          has_neighbor = True
           edges.append((i, j))
-
-      # Force the graph to be connected.
-      if force_connected and not has_neighbor[i]:
-        indices = []
+      if force_connected and not has_neighbor:
+        # Forcefully connects to one of the nodes.
         ps = []
-        for j in xrange(0, size_of_network):
-          if i == j:
-            continue
+        for j in xrange(i+1, size_of_network):
           d = ((x[i] - x[j]) ** 2 + (y[i] - y[j]) ** 2) ** 0.5
           p = beta * math.exp(-d / (sq2 * alpha))
           ps.append(p)
-          indices.append(j)
         tot = sum(ps)
-        ps = [ps[_i]*1.0/tot for _i in xrange(0, size_of_network-1)]
-        edges.append((i, cls.RANDOM.choice(indices, p=ps)))
+        ps = [_p*1.0/tot for _p in ps]
+        j = cls.RANDOM.choice(range(i+1, size_of_network), p=ps)
+        edges.append((i, j))
+          
     g.add_edges(edges)
     return g
 
@@ -351,7 +344,6 @@ class NetworkGenerator(object):
       mid = (beg + end)/2.0
       g = cls.generate_Waxman(size_of_network, [alpha, mid, force_connected])
       average_degree = g.ecount() * 2.0 / g.vcount()
-      print >> sys.stderr, mid, average_degree
       if abs(average_degree - parameter_list[0]) / parameter_list[0] < eps:
         cnt = 0
         while not g.is_connected():
