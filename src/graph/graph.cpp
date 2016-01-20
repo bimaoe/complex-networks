@@ -65,7 +65,12 @@ void Graph::readFromFile(string filename) {
   }
 
   int vId1, vId2;
-  while (file >> vId1 >> vId2) {
+  string line;
+  while (getline(file, line)) {
+    // Lines that start with # are comments.
+    if (line[0] == '#') continue;
+    stringstream s(line);
+    s >> vId1 >> vId2;
     addVertices(max(vId1, vId2) - getVertexCount() + 1);
     addEdge(vId1, vId2);
     if (isUndirected) {
@@ -75,10 +80,11 @@ void Graph::readFromFile(string filename) {
 }
 
 void Graph::SSSP(int source, vector<int> & distance) {
+  // Initialize distance vector.
   distance.resize(getVertexCount(), -1);
   queue<int> q;
 
-  // Initialize distance.
+  // Initialize distance of the source.
   distance[source] = 0;
   q.push(source);
 
