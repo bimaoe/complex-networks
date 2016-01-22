@@ -112,6 +112,37 @@ class Measures(object):
     return 1.0/graph.eigenvector_centrality(directed=graph.is_directed(), return_eigenvalue=True)[1]
 
   @classmethod
+  def measure_average_search_information(cls, graph):
+    # Calculates the average search information as explained in 
+    # "The Influence of Network Properties on the Synchronization of Kuramoto Oscillators 
+    # Quantified by a Bayesian Regression Analysis".
+    degrees = graph.degree()
+    ans = 0
+    dp = [0.0 for _i in xrange(graph.vcount())]
+    for i in xrange(graph.vcount()):
+      distances = graph.shortest_paths(i)[0]
+      # Sort vertices by distance from i.
+      sorted_vertices = [(distances[_i], _i) for _i in xrange(graph.vcount())]
+      sorted_vertices.sort()
+      for dist, curr in sorted_vertices:
+        if dist == 0:
+          dp[curr] = 1.0
+        else:
+          neighbors = graph.neighbors(curr)
+          dp[curr] = 0
+          # For all neighbors in the shortest path.
+          for next in neighbors:
+            if next == i:
+              dp[curr] += 1.0
+            elif distances[next] == distances[curr] - 1:
+              dp[curr] += dp[next] * degrees[next] / (degrees[next] - 1.0)
+          dp[curr] *= 1.0 / degrees[curr]
+      for m in xrange(graph.vcount()):
+        ans += -numpy.log2(degrees[m] * 1.0 / degrees[i] * dp[m])
+    ans /= (graph.vcount() * graph.vcount())
+    return ans
+
+  @classmethod
   def get_methods(cls, method_names):
     return [(method_name, getattr(Measures, method_name)) 
         for method_name in method_names 
