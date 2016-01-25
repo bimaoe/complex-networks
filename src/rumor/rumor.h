@@ -57,6 +57,18 @@ public:
   /** Run the ISR Maki-Thompson model in a graph.
     Parameters:
       graph: The graph where the rumor will be spread.
+      lambda: The spreading probability, must be in [0, 1].
+      alpha: The recovery probability, must be in [0, 1].
+      firstSpreader: The initially spreader vertex's ID.
+      maxIterations: Maximum number of iterations to run.
+      status: Vector of status (in case one wants to know the status of every node).
+  **/
+  static Rumor::Evolution * runISR(Graph & graph, double lambda, double alpha, int firstSpreader,
+    int maxIterations, vector<Status> &status);
+
+  /** Run the ISR Maki-Thompson model in a graph.
+    Parameters:
+      graph: The graph where the rumor will be spread.
       lambda: The infection probability, must be in [0, 1].
       alpha: The recovery probability, must be in [0, 1].
       firstSpreader: The initially spreader vertex's ID.

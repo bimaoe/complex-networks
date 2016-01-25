@@ -68,8 +68,8 @@ Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha,
 
   for (int t = 0; spreaderVertices.size() > 0 &&  t < maxIterations; t++) {
     //fprintf (stderr, "(t, sz) = (%d %d)\n", t, spreaderVertices.size());
-    // Vector to store the nodes that turned into spreaders.
-    vector<int> newSpreaderVertices;
+    // Set to store the nodes that turned into spreaders.
+    set<int> newSpreaderVertices;
     // Vector to store the nodes that turned into stiflers.
     vector<decltype(spreaderVertices.begin())> newStiflers;
 
@@ -92,16 +92,12 @@ Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha,
         if (status[neighbour] == IGNORANT) {
           if (Stat::uniform() < lambda) {
             // Spreading.
-            newSpreaderVertices.push_back(neighbour);
-            iCount--;
-            sCount++;
+            newSpreaderVertices.insert(neighbour);
           }
         } else {
           if (Stat::uniform() < alpha) {
             // Recovery.
             newStiflers.push_back(it);
-            sCount--;
-            rCount++;
             break;
           }
         }
@@ -111,11 +107,15 @@ Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha,
     for (auto it = newSpreaderVertices.begin(); it != newSpreaderVertices.end(); it++) {
       status[*it] = SPREADER;
       spreaderVertices.push_back(*it);
+      iCount--;
+      sCount++;
     }
     // Remove the new stiflers form the spreader list.
     for (auto it = newStiflers.begin(); it != newStiflers.end(); it++) {
       status[*(*it)] = STIFLER;
       spreaderVertices.erase(*it);
+      sCount--;
+      rCount++;
     }
     evolution->add(iCount, sCount, rCount);
   }
@@ -123,12 +123,17 @@ Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha,
 }
 
 Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha, int firstSpreader,
-    int maxIterations) {
+    int maxIterations, vector<Status> &status) {
   vector<int> initiallySpreader;
   initiallySpreader.push_back(firstSpreader);
-  return runISR(graph, lambda, alpha, initiallySpreader, maxIterations);
+  return runISR(graph, lambda, alpha, initiallySpreader, maxIterations, status);
 }
 
+Rumor::Evolution * Rumor::runISR(Graph & graph, double lambda, double alpha, int firstSpreader,
+    int maxIterations) {
+  vector<Status> status;
+  return runISR(graph, lambda, alpha, firstSpreader, maxIterations, status);
+}
 
 
 // #include <stdio.h>
