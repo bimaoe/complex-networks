@@ -1,0 +1,35 @@
+# Simple test for config reader.
+# Comments should be written in a line starting with a '#'
+# Single variables should be marked with 'single'
+# Lists should be marked with 'list'
+# Dictionaries should be marked with 'dict'
+# When inserting variables inside a dictionary, a + should be added before the variables and a - after.
+# Tabs and spaces heading and trailing spaces, tabs and \n are ignored
+
+single dir_name ../../dir/
+dict sampling_methods
++
+	list bfs bla|blabla|blabal
+	list node 0.5|0.6|0.8
+-
+dict network_models
++
+	dict nested
+	+
+		single three 3
+		list listfour 4|4|4|4
+		dict nested2empty
+	-
+-
+
+# The result should be:
+#{
+#  'dir_name': '../../dir/', 
+#  'sampling_methods': {
+#    'bfs': ['bla', 'blabla', 'blabal'],
+#    'node': ['0.5', '0.6', '0.8']},
+#    'network_models': {
+#      'nested': {
+#        'three': 3,
+#        'listfour': ['4', '4', '4', '4'],
+#        'nested2empty': {}}}}
