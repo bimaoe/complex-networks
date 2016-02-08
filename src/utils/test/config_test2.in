@@ -1,0 +1,30 @@
+# Test unnamed lists and nested lists.
+dict ER_avg
++
+	list 1000
+	+
+		list
+		+
+			tsingle int 6
+			tsingle bool False
+			tsingle bool True
+		-
+	-
+-
+dict BA_avg
++
+	list 1000
+	+
+		list
+		+
+			tsingle int 6
+			tsingle bool False
+		-
+		list
+		+
+			tsingle int 6
+			tsingle bool False
+			tsingle float 1.0
+		-
+	-
+-
