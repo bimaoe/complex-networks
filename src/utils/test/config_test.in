@@ -10,13 +10,13 @@ single dir_name ../../dir/
 dict sampling_methods
 +
 	list bfs bla|blabla|blabal
-	list node 0.5|0.6|0.8
+	tlist float node 0.5|0.6|0.8
 -
 dict network_models
 +
 	dict nested
 	+
-		single three 3
+		tsingle int three 3
 		list listfour 4|4|4|4
 		dict nested2empty
 	-
@@ -27,7 +27,7 @@ dict network_models
 #  'dir_name': '../../dir/', 
 #  'sampling_methods': {
 #    'bfs': ['bla', 'blabla', 'blabal'],
-#    'node': ['0.5', '0.6', '0.8']},
+#    'node': [0.5, 0.6, 0.8]},
 #    'network_models': {
 #      'nested': {
 #        'three': 3,

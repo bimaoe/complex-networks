@@ -1,6 +1,12 @@
 """This file generates networks with parameters specified in parameter_list_dict."""
 import argparse
 
+def convert(vartype, x):
+  if vartype == 'int':
+    return int(x)
+  elif vartype == 'float':
+    return float(x)
+
 def parse(config_filename):
   config_file =open(config_filename, 'r')
   config = {}
@@ -26,6 +32,10 @@ def parse(config_filename):
     elif var[0] == 'dict':
       curr[var[1]] = {}
       next = curr[var[1]]
+    elif var[0] == 'tsingle':
+      curr[var[2]] = convert(var[1], var[3])
+    elif var[0] == 'tlist':
+      curr[var[2]] = [convert(var[1], _x) for _x in var[3].split('|')]
   return config
 
 def main():
