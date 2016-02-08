@@ -1,12 +1,8 @@
 """This file generates networks with parameters specified in parameter_list_dict."""
-import sys
-sys.path.insert(0, "../../../complex-networks/src/network_models")
-import network_generator
 import argparse
-import subprocess
-import igraph
 
-def parse(config_file):
+def parse(config_filename):
+  config_file =open(config_filename, 'r')
   config = {}
   stack = []
 
@@ -39,10 +35,10 @@ def main():
   
   args = vars(parser.parse_args())
   config_filename = args['config_filename']
-  config_file = open(config_filename, 'r')
   
-  config = parse(config_file)
-  
+  config = parse(config_filename)
+  print config
+
 if __name__ == '__main__':
   main()
   
