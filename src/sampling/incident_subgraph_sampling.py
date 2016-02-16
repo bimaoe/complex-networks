@@ -2,8 +2,9 @@
 		"Statistical Analysis of Network Data" """
 
 import igraph
-import numpy
+import math
 import matplotlib.pyplot as pyplot
+import numpy
 
 class IncidentSubgraphSampling(object):
 	"""This class implements the Incident Subgraph Sampling method.
@@ -16,13 +17,16 @@ class IncidentSubgraphSampling(object):
 		Parameters:
 			graph: An igraph.Graph that is the network that will be sampled.
 			parameters: A tuple (sample_edge_count).
-				sample_edge_count: An integer indicating the number of edges of the sampled graph.
+				sample_edge_count: An integer indicating the number of edges of the sampled graph
+						or a float between 0 and 1 indicating the proportion of edges to be sampled.
 		
 		Returns:
 			An igraph.Graph that is the sampled graph.
 		"""
 		sample_edge_count = (parameters[0] if isinstance(parameters, tuple)
 				else parameters)
+		if sample_edge_count <= 1:
+			sample_edge_count = math.floor(graph.ecount() * sample_edge_count)
 		sampled_edges = numpy.random.choice(graph.ecount(), sample_edge_count, replace=False)
 		sampled_vertices = set()
 		edge_list = graph.get_edgelist()
@@ -32,9 +36,9 @@ class IncidentSubgraphSampling(object):
 
 		sampled_graph = graph.subgraph_edges(sampled_edges)
 		#print sampled_graph.vcount(), sampled_graph.ecount()
-		degrees = sampled_graph.degree()
+		original_degrees = graph.degree(sampled_vertices)
 
-		return sampled_graph, degrees
+		return sampled_graph, original_degrees
 
 if __name__ == '__main__':
 	size_of_network = 1000

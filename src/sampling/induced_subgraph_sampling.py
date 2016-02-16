@@ -2,8 +2,9 @@
 		"Statistical Analysis of Network Data" """
 
 import igraph
-import numpy
+import math
 import matplotlib.pyplot as pyplot
+import numpy
 
 class InducedSubgraphSampling(object):
 	"""This class implements the Induced Subgraph Sampling method.
@@ -16,17 +17,20 @@ class InducedSubgraphSampling(object):
 		Parameters:
 			graph: An igraph.Graph that is the network that will be sampled.
 			parameters: A tuple (sample_size).
-				sample_size: An integer indicating the number of nodes of the sampled graph.
+				sample_size: An integer indicating the number of nodes of the sampled graph
+				or a float between 0 and 1 indicating the proportion of nodes to be sampled.
 		
 		Returns:
 			An igraph.Graph that is the sampled graph.
 		"""
 		sample_size = (parameters[0] if isinstance(parameters, tuple)
 				else parameters)
-		sampled_vertices = numpy.random.choice(graph.vcount(), sample_size)
+		if sample_size <= 1:
+			sample_size = math.floor(graph.vcount() * sample_size)
+		sampled_vertices = numpy.random.choice(graph.vcount(), sample_size, replace=False)
 		sampled_graph = graph.induced_subgraph(sampled_vertices)
-		degrees = graph.degree(sampled_vertices)
-		return sampled_graph, degrees
+		original_degrees = graph.degree(sampled_vertices)
+		return sampled_graph, original_degrees
 
 if __name__ == '__main__':
 	size_of_network = 1000
